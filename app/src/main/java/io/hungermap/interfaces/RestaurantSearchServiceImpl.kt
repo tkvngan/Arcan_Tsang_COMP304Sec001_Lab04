@@ -16,6 +16,7 @@ class RestaurantSearchServiceImpl(context: Context) : RestaurantSearchService {
 
     @SuppressLint("MissingPermission")
     override suspend fun searchRestaurants(type: String, vararg keywords: String): List<Restaurant> {
+        // TODO: Need further elaboration on the implementation of this method.
         val placeFields = listOf(Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG)
         val request = FindCurrentPlaceRequest.newInstance(placeFields)
         val response = placesClient.findCurrentPlace(request).await()

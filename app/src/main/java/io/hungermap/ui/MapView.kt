@@ -15,8 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.hungermap.domain.Location
 
+/**
+ * Represents a view that displays a map of the selected restaurant.
+ * @param restaurantName The name of the selected restaurant.
+ * @param location The location of the selected restaurant.
+ * @receiver Navigable The Navigable instance that is used to navigate between views.
+ */
 @Composable
 fun Navigable.MapView(restaurantName: String, location: Location) {
+    // TODO: Replace the following code with the actual UI for the MapView
     Scaffold { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),

@@ -9,6 +9,11 @@ import io.hungermap.ui.theme.HungerMapTheme
 /**
  * This activity activates the view to show the list of restaurants of
  * the selected cuisine type.
+ * This class is needed for the sake of the assignment instructions which
+ * require the creation of an activity using the first name of the first
+ * member of the group.
+ * The actual logic for displaying the list of restaurants is in the
+ * RestaurantsView class.
  */
 class ArcanActivity : NavigableActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

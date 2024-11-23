@@ -20,8 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
+/**
+ * Represents the main view of the application.
+ * @receiver Navigable The Navigable instance that is used to navigate between views.
+ */
 @Composable
 fun Navigable.MainView() {
+    // TODO: Replace the following code with the actual UI for the MainView
     var cuisineType: String by remember { mutableStateOf("Chinese") }
     Scaffold { innerPadding ->
         Column(

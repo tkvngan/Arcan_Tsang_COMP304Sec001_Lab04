@@ -15,8 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.hungermap.domain.Location
 
+/**
+ * Represents a view that displays a list of restaurants of the selected cuisine type.
+ * @param cuisineType The cuisine type selected by the user.
+ * @receiver Navigable The Navigable instance that is used to navigate between views.
+ */
 @Composable
 fun Navigable.RestaurantsView(cuisineType: String) {
+    // TODO: Replace the following code with the actual UI for the RestaurantsView
     Scaffold { padding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),

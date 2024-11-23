@@ -4,6 +4,13 @@ import io.hungermap.domain.Location
 
 /**
  * An abstraction for navigating between different views in the HungerMap app.
+ * This interface is used to decouple the navigation logic from the view classes.
+ *
+ * There is an implementation of this interface in the NavigableActivity class that
+ * uses the traditional activity-based navigation.
+ *
+ * An alternative implementation could be implemented using Jetpack Compose Navigation
+ * Component.
  */
 interface Navigable {
 
