@@ -1,11 +1,14 @@
 package io.hungermap.ui
 
+import android.R
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -37,11 +42,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
@@ -85,7 +92,7 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                         style = MaterialTheme.typography.displaySmall
                     )
                 },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().shadow(8.dp),
                 navigationIcon = {
                     IconButton(onClick = this::goHome) {
                         Icon(imageVector = Icons.Default.Home, contentDescription = "Home")
@@ -108,9 +115,9 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.Center
         ) {
             if (waitingForRestaurants) {
                 CircularProgressIndicator(
@@ -124,6 +131,9 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                item {
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
                 items(restaurants) { restaurant ->
                     Card(
                         modifier = Modifier.fillMaxWidth()
@@ -133,14 +143,14 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.Top
                         ) {
                             Text(restaurant.name,
-                                modifier = Modifier.fillMaxWidth(0.75f),
-                                style = MaterialTheme.typography.titleLarge
+                                modifier = Modifier.fillMaxWidth(0.75f).padding(end = 4.dp),
+                                style = MaterialTheme.typography.titleLarge,
                             )
                             RatingBar(
-                                modifier = Modifier.fillMaxWidth(1f).height(16.dp),
+                                modifier = Modifier.fillMaxWidth(1f).height(32.dp),
                                 rating = restaurant.rating?.toFloat() ?: 0f,
                             )
                         }
@@ -151,7 +161,7 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                             val photoUri = restaurant.photoUri
                             if (photoUri != null) {
                                 AsyncImage(
-                                    modifier = Modifier.width(50.dp).height(50.dp),
+                                    modifier = Modifier.width(64.dp).height(64.dp),
                                     model = ImageRequest.Builder(LocalContext.current)
                                         .data(photoUri)
                                         .size(Size.ORIGINAL)
@@ -160,9 +170,9 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                                     contentDescription = null,
                                 )
                             } else {
-                                val colorIndex = ((abs(restaurant.location.latitude) + abs(restaurant.location.longitude)) * 1000).toInt() % colorSet.size
+                                val colorIndex = abs(restaurant.name.hashCode()) % colorSet.size
                                 Box(
-                                    modifier = Modifier.width(50.dp).height(50.dp).background(colorSet[colorIndex])
+                                    modifier = Modifier.width(64.dp).height(64.dp).background(colorSet[colorIndex])
                                 ) {
                                     Text(text = restaurant.name.take(1).uppercase(),
                                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
@@ -171,10 +181,22 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                                     )
                                 }
                             }
-                            Text(restaurant.address ?: "",
-                                modifier = Modifier.fillMaxWidth(1f).padding(start = 16.dp),
-                                style = MaterialTheme.typography.bodyLarge
-                            )
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(restaurant.address ?: "",
+                                    modifier = Modifier.fillMaxWidth(1f).padding(start = 16.dp),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    lineHeight = 20.sp
+                                )
+                                if (restaurant.telephone != null) {
+                                    Text(
+                                        restaurant.telephone,
+                                        modifier = Modifier.fillMaxWidth(1f).padding(start = 16.dp),
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -189,12 +211,11 @@ private fun RatingBar(
     modifier: Modifier = Modifier,
 ) {
     val totalCount = 5
-    Box(
-        modifier = modifier.fillMaxHeight()
-    ) {
+    Box(modifier = modifier.fillMaxHeight()) {
         Row(
             modifier = Modifier.matchParentSize(),
-            horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.Start)
+            horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.Start),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             repeat(totalCount) { index ->
                 Icon(

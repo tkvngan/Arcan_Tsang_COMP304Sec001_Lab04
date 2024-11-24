@@ -1,6 +1,7 @@
 package io.hungermap.ui
 
 import io.hungermap.domain.Location
+import io.hungermap.domain.Restaurant
 
 /**
  * An abstraction for navigating between different views in the HungerMap app.
@@ -32,5 +33,11 @@ interface Navigable {
     /**
      * Navigates to the map view for the specified restaurant.
      */
+    @Deprecated("Use showMapView(restaurant: Restaurant) instead.")
     fun showMapView(restaurantName: String, location: Location)
+
+    /**
+     * Navigates to the map view for the specified restaurant.
+     */
+    fun showMapView(restaurant: Restaurant)
 }
