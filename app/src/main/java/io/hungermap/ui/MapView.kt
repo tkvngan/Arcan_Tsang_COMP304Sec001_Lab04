@@ -1,70 +1,75 @@
 package io.hungermap.ui
 
-import android.Manifest
-import android.content.pm.PackageManager
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.*
 import com.google.maps.android.compose.*
 import io.hungermap.domain.Location
-import io.hungermap.domain.Restaurant
+import io.hungermap.ui.hooks.LocationTracker
+import io.hungermap.ui.services.GeofencingService
+import io.hungermap.ui.utils.RouteService
+import kotlinx.coroutines.launch
 
 @Composable
-fun Navigable.MapView(restaurantName: String, location: Location) {
+fun Navigable.MapView(
+    restaurantName: String,
+    location: Location
+) {
     val context = LocalContext.current
-    val hasLocationPermission by remember {
-        mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context, Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-        )
-    }
+    val scope = rememberCoroutineScope()
+    val locationTracker = remember { LocationTracker(context) }
+    val geofencingService = remember { GeofencingService(context) }
+    val routeService = remember { RouteService("your_api_key_here") }
+
+    // States
+    var userLocation by remember { mutableStateOf<LatLng?>(null) }
+    var routePoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
+    var showGeofence by remember { mutableStateOf(true) }
 
     val restaurantLocation = LatLng(location.latitude, location.longitude)
+
+    // Camera position
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(restaurantLocation, 15f)
     }
 
-    val mapProperties = remember {
-        mutableStateOf(
-            MapProperties(
-                isMyLocationEnabled = hasLocationPermission,
-                mapType = MapType.NORMAL,
-            )
-        )
-    }
-
-    val mapUiSetting by remember {
-        mutableStateOf(
-            MapUiSettings(
-                isZoomControlsEnabled = true,
-                isMyLocationButtonEnabled = true,
-                isCompassEnabled = true,
-            )
-        )
+    // Location tracking
+    LaunchedEffect(Unit) {
+        if (locationTracker.hasLocationPermission()) {
+            locationTracker.getLocationUpdates().collect { location ->
+                userLocation = LatLng(location.latitude, location.longitude)
+                // Update route when user location changes
+                userLocation?.let { userLoc ->
+                    routePoints = routeService.getRoute(userLoc, restaurantLocation)
+                }
+            }
+        }
     }
 
     Scaffold(
         topBar = {
             SmallTopAppBar(
-                title = {
-                    Text(restaurantName)
-                },
+                title = { Text(restaurantName) },
                 navigationIcon = {
                     IconButton(onClick = { goBack() }) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Go Back")
+                        Icon(Icons.Default.ArrowBack, "Back")
                     }
                 },
                 actions = {
-                    IconButton(onClick = { goHome() }) {
-                        Icon(imageVector = Icons.Default.Home, contentDescription = "Go Home")
+                    IconButton(
+                        onClick = { showGeofence = !showGeofence }
+                    ) {
+                        Icon(
+                            if (showGeofence) Icons.Default.LocationOn
+                            else Icons.Default.LocationOff,
+                            "Toggle Geofence"
+                        )
                     }
                 }
             )
@@ -72,35 +77,67 @@ fun Navigable.MapView(restaurantName: String, location: Location) {
     ) { padding ->
         Box(
             modifier = Modifier
-                .padding(padding)
                 .fillMaxSize()
+                .padding(padding)
         ) {
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
-                properties = mapProperties.value,
-                uiSettings = mapUiSetting
+                properties = MapProperties(
+                    isMyLocationEnabled = locationTracker.hasLocationPermission(),
+                    mapType = MapType.NORMAL
+                ),
+                uiSettings = MapUiSettings(
+                    zoomControlsEnabled = true,
+                    myLocationButtonEnabled = true,
+                    mapToolbarEnabled = true
+                )
             ) {
+                // Restaurant marker
                 Marker(
                     state = MarkerState(position = restaurantLocation),
                     title = restaurantName,
-                    snippet = "Lat: ${location.latitude}, Long: ${location.longitude}"
+                    snippet = "Tap for details"
                 )
+
+                // Geofence circle
+                if (showGeofence) {
+                    Circle(
+                        center = restaurantLocation,
+                        radius = 100.0, // 100 meters
+                        fillColor = Color.Blue.copy(alpha = 0.1f),
+                        strokeColor = Color.Blue,
+                        strokeWidth = 2f
+                    )
+                }
+
+                // Route polyline
+                if (routePoints.isNotEmpty()) {
+                    Polyline(
+                        points = routePoints,
+                        color = Color.Blue,
+                        width = 5f
+                    )
+                }
             }
 
-            if (!hasLocationPermission) {
-                Card(
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(16.dp)
-                ) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text("Location Permission Required")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(onClick = { requestPermission() }) {
-                            Text("Grant Permission")
+            // Controls
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            userLocation?.let { userLoc ->
+                                routePoints = routeService.getRoute(userLoc, restaurantLocation)
+                            }
                         }
                     }
+                ) {
+                    Icon(Icons.Default.Navigation, "Get Route")
                 }
             }
         }
