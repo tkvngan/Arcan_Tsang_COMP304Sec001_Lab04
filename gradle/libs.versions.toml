@@ -10,8 +10,9 @@ activityCompose = "1.9.3"
 composeBom = "2024.11.00"
 navigationCompose = "2.8.3"
 coroutines = "1.9.0"
-googlePlaces = "2.5.0"
+googlePlaces = "4.1.0"
 googleMaps = "19.0.0"
+coil = "3.0.3"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,6 +36,9 @@ kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutine
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
 google-places = { module = "com.google.android.libraries.places:places", version.ref = "googlePlaces" }
 google-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "googleMaps" }
+
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
