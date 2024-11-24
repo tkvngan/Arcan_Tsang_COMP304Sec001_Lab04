@@ -1,6 +1,12 @@
 package io.hungermap.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.LocationOff
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,6 +22,7 @@ import io.hungermap.ui.services.GeofencingService
 import io.hungermap.ui.utils.RouteService
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Navigable.MapView(
     restaurantName: String,
@@ -54,11 +61,11 @@ fun Navigable.MapView(
 
     Scaffold(
         topBar = {
-            SmallTopAppBar(
+            TopAppBar(
                 title = { Text(restaurantName) },
                 navigationIcon = {
                     IconButton(onClick = { goBack() }) {
-                        Icon(Icons.Default.ArrowBack, "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -66,9 +73,9 @@ fun Navigable.MapView(
                         onClick = { showGeofence = !showGeofence }
                     ) {
                         Icon(
-                            if (showGeofence) Icons.Default.LocationOn
+                            imageVector = if (showGeofence) Icons.Default.LocationOn
                             else Icons.Default.LocationOff,
-                            "Toggle Geofence"
+                            contentDescription = "Toggle Geofence"
                         )
                     }
                 }
@@ -137,7 +144,10 @@ fun Navigable.MapView(
                         }
                     }
                 ) {
-                    Icon(Icons.Default.Navigation, "Get Route")
+                    Icon(
+                        imageVector = Icons.Default.Navigation,
+                        contentDescription = "Get Route"
+                    )
                 }
             }
         }
