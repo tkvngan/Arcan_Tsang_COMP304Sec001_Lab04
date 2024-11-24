@@ -1,5 +1,5 @@
 [versions]
-agp = "8.7.2"
+agp = "8.5.2"
 kotlin = "2.0.21"
 coreKtx = "1.13.1"
 junit = "4.13.2"
@@ -13,8 +13,13 @@ coroutines = "1.9.0"
 googlePlaces = "4.1.0"
 googleMaps = "19.0.0"
 coil = "3.0.3"
+material-icons = "1.5.4"
+maps-compose = "2.11.4"
+play-services-location = "21.0.1"
+google-maps-services = "2.1.2"
 
 [libraries]
+# Existing AndroidX and testing libraries
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
@@ -29,14 +34,24 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
-
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+# Material Icons
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version.ref = "material-icons" }
+
+# Coroutines
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "coroutines" }
+
+# Google Services
 google-places = { module = "com.google.android.libraries.places:places", version.ref = "googlePlaces" }
 google-maps = { module = "com.google.android.gms:play-services-maps", version.ref = "googleMaps" }
+google-maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "maps-compose" }
+google-play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "play-services-location" }
+google-maps-services = { group = "com.google.maps", name = "google-maps-services", version.ref = "google-maps-services" }
 
+# Coil
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
 
@@ -45,3 +60,17 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 
+[bundles]
+maps = [
+    "google-maps-compose",
+    "google-maps",
+    "google-play-services-location",
+    "google-maps-services",
+    "google-places"
+]
+
+coroutines = [
+    "kotlinx-coroutines-core",
+    "kotlinx-coroutines-android",
+    "kotlinx-coroutines-play-services"
+]
