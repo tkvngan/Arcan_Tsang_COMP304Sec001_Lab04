@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -11,15 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.maps.android.compose.*
 import io.hungermap.domain.Location
+import io.hungermap.ui.utils.RouteService
 import kotlinx.coroutines.launch
-import com.google.maps.DirectionsApi
-import com.google.maps.GeoApiContext
-import com.google.maps.model.TravelMode
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import android.annotation.SuppressLint
+import android.content.Context
+import android.os.Looper
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,8 +32,10 @@ fun Navigable.MapView(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val routeService = remember { RouteService(context) }
 
     var isMapLoaded by remember { mutableStateOf(false) }
+    var isNavigating by remember { mutableStateOf(false) }
     var routePoints by remember { mutableStateOf<List<LatLng>>(emptyList()) }
     var userLocation by remember { mutableStateOf<LatLng?>(null) }
 
@@ -38,33 +43,75 @@ fun Navigable.MapView(
         LatLng(location.latitude, location.longitude)
     }
 
+    val fusedLocationClient = remember {
+        LocationServices.getFusedLocationProviderClient(context)
+    }
+
+    val locationCallback = remember {
+        object : LocationCallback() {
+            override fun onLocationResult(result: LocationResult) {
+                result.lastLocation?.let { lastLocation ->
+                    userLocation = LatLng(lastLocation.latitude, lastLocation.longitude)
+                }
+            }
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    fun startLocationUpdates() {
+        val locationRequest = LocationRequest.Builder(
+            Priority.PRIORITY_HIGH_ACCURACY,
+            5000
+        ).build()
+
+        fusedLocationClient.requestLocationUpdates(
+            locationRequest,
+            locationCallback,
+            Looper.getMainLooper()
+        )
+    }
+
+    LaunchedEffect(Unit) {
+        startLocationUpdates()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+            routeService.cleanUp()
+        }
+    }
+
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(restaurantLocation, 15f)
     }
 
-    // Initialize GeoApiContext for routing
-    val geoApiContext = remember {
-        GeoApiContext.Builder()
-            .apiKey("YOUR_API_KEY")
-            .build()
-    }
+    // Start navigation
+    fun startNavigation() {
+        scope.launch {
+            userLocation?.let { origin ->
+                // Get route
+                val newRoute = routeService.getRoute(
+                    origin = origin,
+                    destination = restaurantLocation
+                )
 
-    // Function to calculate route
-    suspend fun calculateRoute(origin: LatLng, destination: LatLng): List<LatLng> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val result = DirectionsApi.newRequest(geoApiContext)
-                    .mode(TravelMode.DRIVING)
-                    .origin(com.google.maps.model.LatLng(origin.latitude, origin.longitude))
-                    .destination(com.google.maps.model.LatLng(destination.latitude, destination.longitude))
-                    .await()
+                routePoints = newRoute
 
-                result.routes.firstOrNull()?.legs?.firstOrNull()?.steps?.flatMap { step ->
-                    step.polyline.decodePath().map { LatLng(it.lat, it.lng) }
-                } ?: emptyList()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                emptyList()
+                // Zoom to show route
+                if (newRoute.isNotEmpty()) {
+                    val bounds = LatLngBounds.builder().apply {
+                        include(origin)
+                        include(restaurantLocation)
+                        newRoute.forEach { include(it) }
+                    }.build()
+
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngBounds(bounds, 100),
+                        500
+                    )
+                }
+                isNavigating = true
             }
         }
     }
@@ -75,30 +122,10 @@ fun Navigable.MapView(
                 title = { Text(restaurantName) },
                 navigationIcon = {
                     IconButton(onClick = { goBack() }) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                        Icon(Icons.Default.ArrowBack, "Back")
                     }
                 }
             )
-        },
-        floatingActionButton = {
-            if (userLocation != null) {
-                FloatingActionButton(
-                    onClick = {
-                        scope.launch {
-                            val route = calculateRoute(userLocation!!, restaurantLocation)
-                            routePoints = route
-                        }
-                    }
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Navigation,
-                        contentDescription = "Get Directions"
-                    )
-                }
-            }
         }
     ) { padding ->
         Box(
@@ -106,37 +133,25 @@ fun Navigable.MapView(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Loading indicator
-            if (!isMapLoaded) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-
             GoogleMap(
                 modifier = Modifier.fillMaxSize(),
                 cameraPositionState = cameraPositionState,
                 properties = MapProperties(
-                    mapType = MapType.NORMAL,
-                    isMyLocationEnabled = true
+                    isMyLocationEnabled = true,
+                    mapType = MapType.NORMAL
                 ),
                 uiSettings = MapUiSettings(
                     zoomControlsEnabled = true,
-                    mapToolbarEnabled = true,
-                    myLocationButtonEnabled = true
+                    myLocationButtonEnabled = true,
+                    compassEnabled = false,
+                    mapToolbarEnabled = false
                 ),
-                onMapLoaded = {
-                    isMapLoaded = true
-                },
-                onMyLocationClick = { location ->
-                    userLocation = LatLng(location.latitude, location.longitude)
-                }
+                onMapLoaded = { isMapLoaded = true }
             ) {
                 // Restaurant marker
                 Marker(
                     state = MarkerState(position = restaurantLocation),
-                    title = restaurantName,
-                    snippet = "${location.latitude}, ${location.longitude}"
+                    title = restaurantName
                 )
 
                 // Route polyline
@@ -144,8 +159,43 @@ fun Navigable.MapView(
                     Polyline(
                         points = routePoints,
                         color = Color.Blue,
-                        width = 5f,
+                        width = 8f,
                         pattern = listOf(Dot(), Gap(8f))
+                    )
+                }
+            }
+
+            // Navigation FAB
+            FloatingActionButton(
+                onClick = { startNavigation() },
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Navigation,
+                    contentDescription = if (isNavigating) "Stop Navigation" else "Start Navigation"
+                )
+            }
+
+            // Show loading while calculating route
+            if (!isMapLoaded) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            // Show distance and duration
+            if (routePoints.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 96.dp)
+                ) {
+                    Text(
+                        text = "Follow the blue line to $restaurantName",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
             }

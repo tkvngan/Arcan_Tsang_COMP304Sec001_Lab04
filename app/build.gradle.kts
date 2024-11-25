@@ -59,7 +59,12 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-
+    implementation("com.google.maps.android:maps-compose:2.11.4")
+    implementation("com.google.android.gms:play-services-maps:18.1.0")
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.maps:google-maps-services:2.1.2")
+    implementation("org.slf4j:slf4j-simple:1.7.32")
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
     // Existing test dependencies
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
