@@ -89,8 +89,12 @@ fun Navigable.MapView(
 
     DisposableEffect(Unit) {
         onDispose {
+            scope.launch {
+                withContext(Dispatchers.IO) {
+                    routeService.cleanUp()
+                }
+            }
             fusedLocationClient.removeLocationUpdates(locationCallback)
-            routeService.cleanUp()
         }
     }
 
