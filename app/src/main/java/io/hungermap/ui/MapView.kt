@@ -36,6 +36,7 @@ import android.os.Looper
 import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("MissingPermission")
 @Composable
 fun Navigable.MapView(
     restaurant: Restaurant,
@@ -69,7 +70,6 @@ fun Navigable.MapView(
         }
     }
 
-    @SuppressLint("MissingPermission")
     fun startLocationUpdates() {
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
