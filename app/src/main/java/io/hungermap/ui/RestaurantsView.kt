@@ -1,8 +1,6 @@
 package io.hungermap.ui
 
-import android.R
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,15 +29,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarColors
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -89,7 +85,7 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                         text = cuisineType,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.displaySmall
+                        style = MaterialTheme.typography.titleLarge
                     )
                 },
                 modifier = Modifier.fillMaxWidth().shadow(8.dp),
@@ -138,7 +134,7 @@ fun Navigable.RestaurantsView(service: RestaurantSearchService, cuisineType: Str
                     Card(
                         modifier = Modifier.fillMaxWidth()
                             .clickable {
-                                showMapView(restaurant.name, restaurant.location)
+                                showMapView(restaurant)
                             },
                     ) {
                         Row(

@@ -7,6 +7,7 @@ import io.hungermap.domain.Location
 import io.hungermap.ui.MapView
 import io.hungermap.ui.theme.HungerMapTheme
 import android.util.Log
+import io.hungermap.domain.Restaurant
 
 class TsangActivity : NavigableActivity() {
     companion object {
@@ -16,27 +17,26 @@ class TsangActivity : NavigableActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-
         try {
-            val restaurantName = intent.getStringExtra("restaurantName")
-                ?: throw IllegalArgumentException("Restaurant name is required")
-
-            val latitude = intent.getDoubleExtra("restaurantLatitude", 0.0)
-            val longitude = intent.getDoubleExtra("restaurantLongitude", 0.0)
-
-            if (latitude == 0.0 || longitude == 0.0) {
-                throw IllegalArgumentException("Invalid location coordinates")
-            }
-
+            val restaurant = Restaurant(
+                name = intent.getStringExtra("restaurant.name")!!,
+                location = Location(
+                    latitude = intent.getDoubleExtra("restaurant.location.latitude", 0.0),
+                    longitude = intent.getDoubleExtra("restaurant.location.longitude", 0.0)
+                ),
+                address = intent.getStringExtra("restaurant.address"),
+                city = intent.getStringExtra("restaurant.city"),
+                country = intent.getStringExtra("restaurant.country"),
+                telephone = intent.getStringExtra("restaurant.telephone"),
+                rating = if (intent.hasExtra("restaurant.rating"))
+                    intent.getDoubleExtra("restaurant.rating", 0.0) else null,
+                website = intent.getStringExtra("restaurant.website"),
+                type = intent.getStringExtra("restaurant.type"),
+                photoUri = intent.getStringExtra("restaurant.photoUri")
+            )
             setContent {
                 HungerMapTheme {
-                    MapView(
-                        restaurantName = restaurantName,
-                        location = Location(
-                            latitude = latitude,
-                            longitude = longitude
-                        )
-                    )
+                    MapView(restaurant)
                 }
             }
         } catch (e: Exception) {

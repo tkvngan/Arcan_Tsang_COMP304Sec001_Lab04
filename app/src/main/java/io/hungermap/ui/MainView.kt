@@ -25,7 +25,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.hungermap.R
@@ -40,12 +39,12 @@ fun Navigable.MainView() {
     Scaffold(
         topBar = {
             TopAppBar(
-                modifier = Modifier.fillMaxWidth().shadow(16.dp),
+                modifier = Modifier.shadow(8.dp),
                 title = {
                     Text(
                         "Hunger Map",
                         modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.displayMedium,
+                        style = MaterialTheme.typography.titleLarge,
                         textAlign = TextAlign.Center
                     )
                 },
@@ -58,7 +57,7 @@ fun Navigable.MainView() {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-//                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(0.dp))
             }
             items(cuisines.entries.toList()) { (cuisineType, id) ->
                 Box(

@@ -31,15 +31,6 @@ abstract class NavigableActivity : ComponentActivity(), Navigable {
         startActivity(intent)
     }
 
-    override fun showMapView(restaurantName: String, location: Location) {
-        val intent = Intent(this, TsangActivity::class.java).apply {
-            putExtra("restaurant.name", restaurantName)
-            putExtra("restaurant.location.latitude", location.latitude)
-            putExtra("restaurant.location.longitude", location.longitude)
-        }
-        this.startActivity(intent)
-    }
-
     override fun showMapView(restaurant: Restaurant) {
         val intent = Intent(this, TsangActivity::class.java).apply {
             putExtra("restaurant.name", restaurant.name)
